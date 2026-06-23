@@ -1,4 +1,11 @@
-import { marked } from 'marked';
+import { Marked } from 'marked';
+
+const escapeHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const md = new Marked({
+  renderer: {
+    html: (token) => escapeHtml(typeof token === 'string' ? token : token.text ?? token.raw ?? ''),
+  },
+});
 
 export function parseVersion(tag) {
   const m = String(tag ?? '').match(/^v?(\d+\.\d+\.\d+)$/);
@@ -25,14 +32,14 @@ export function formatReleaseDate(iso) {
 }
 
 export function renderNotesToList(markdown) {
-  const tokens = marked.lexer(String(markdown ?? '').trim());
+  const tokens = md.lexer(String(markdown ?? '').trim());
   const items = [];
   const pushList = (listToken) => {
     for (const item of listToken.items) {
       const subTokens = item.tokens ?? [];
       const inline = subTokens
         .filter((t) => t.type !== 'list')
-        .map((t) => marked.parseInline(String(t.text ?? '').trim()))
+        .map((t) => md.parseInline(String(t.text ?? '').trim()))
         .join(' ')
         .trim();
       if (inline) items.push(inline);
@@ -46,7 +53,7 @@ export function renderNotesToList(markdown) {
       // structural — nothing to surface
     } else {
       // paragraph, heading, blockquote, code, table, etc. — surface text, don't drop it
-      const rendered = marked.parseInline(String(token.text ?? token.raw ?? '').trim());
+      const rendered = md.parseInline(String(token.text ?? token.raw ?? '').trim());
       if (rendered) items.push(rendered);
     }
   }
@@ -72,10 +79,11 @@ export function alreadyContainsVersion(body, version) {
 }
 
 export function insertSection(body, sectionHtml) {
-  const m = String(body).match(/<hr\b[^>]*>/i);
+  const str = String(body);
+  const m = str.match(/<hr\b[^>]*>/i);
   if (!m) throw new Error('no <hr> found in article body — refusing to guess insertion point');
   const cut = m.index + m[0].length;
-  return body.slice(0, cut) + sectionHtml + '<hr>' + body.slice(cut);
+  return str.slice(0, cut) + sectionHtml + '<hr>' + str.slice(cut);
 }
 
 export function composeUpdate(currentBody, { tag, notes, publishedAt }) {

@@ -74,6 +74,12 @@ test('renderNotesToList escapes raw HTML in notes', () => {
     '<ul><li>a &lt; b &amp; c</li></ul>');
 });
 
+test('renderNotesToList escapes raw HTML tags (no injection into the article)', () => {
+  const out = renderNotesToList('- hi <script>alert(1)</script>');
+  assert.ok(!out.includes('<script>'), out);
+  assert.ok(out.includes('&lt;script&gt;'), out);
+});
+
 test('buildVersionSection matches the article format and has no leading <hr>', () => {
   const out = buildVersionSection('12.1.0', 'June 22, 2026 2:02pm CDT', '<ul><li>x</li></ul>');
   assert.ok(!out.startsWith('<hr'));
