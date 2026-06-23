@@ -164,6 +164,21 @@ test('composeUpdate prepends a new version after the intro <hr>', () => {
   assert.ok(result.body.includes('June 23, 2026 1:00pm CDT'));
 });
 
+// Fix 4 tests
+test('renderNotesToList neutralizes javascript: link URLs', () => {
+  const out = renderNotesToList('- click [here](javascript:alert(1))');
+  assert.ok(!out.includes('javascript:'), out);
+  assert.ok(out.includes('here'), out);
+});
+test('renderNotesToList drops data: image sources', () => {
+  const out = renderNotesToList('- ![x](data:text/html,bad)');
+  assert.ok(!out.includes('data:'), out);
+});
+test('renderNotesToList keeps safe https links', () => {
+  const out = renderNotesToList('- see [docs](https://swimtopia.com)');
+  assert.ok(out.includes('<a href="https://swimtopia.com">docs</a>'), out);
+});
+
 test('composeUpdate skips when the version is already present', () => {
   const result = composeUpdate(FIXTURE_BODY, {
     tag: 'v12.1.0',

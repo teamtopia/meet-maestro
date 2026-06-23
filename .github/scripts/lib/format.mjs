@@ -1,9 +1,29 @@
 import { Marked } from 'marked';
 
 const escapeHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const SAFE_URL = /^(?:https?:|mailto:|tel:|\/|#)/i;
 const md = new Marked({
   renderer: {
-    html: (token) => escapeHtml(typeof token === 'string' ? token : token.text ?? token.raw ?? ''),
+    html(token) {
+      return escapeHtml(typeof token === 'string' ? token : token.text ?? token.raw ?? '');
+    },
+    link({ href, title, tokens }) {
+      if (!SAFE_URL.test(href ?? '')) {
+        // unsafe scheme — drop the anchor, keep the label text
+        return this.parser.parseInline(tokens);
+      }
+      const titleAttr = title ? ` title="${escapeHtml(title)}"` : '';
+      return `<a href="${href}"${titleAttr}>${this.parser.parseInline(tokens)}</a>`;
+    },
+    image({ href, title, text }) {
+      if (!SAFE_URL.test(href ?? '')) {
+        // unsafe scheme — drop the image, keep alt text if any
+        return text ? escapeHtml(text) : '';
+      }
+      const titleAttr = title ? ` title="${escapeHtml(title)}"` : '';
+      const altAttr = text ? ` alt="${escapeHtml(text)}"` : '';
+      return `<img src="${href}"${altAttr}${titleAttr}>`;
+    },
   },
 });
 

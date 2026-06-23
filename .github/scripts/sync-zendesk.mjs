@@ -13,9 +13,9 @@ export function readRelease() {
     return { tag: r.tag_name, notes: r.body ?? '', publishedAt: r.published_at };
   }
   return {
-    tag: process.env.RELEASE_TAG,
+    tag: requireEnv('RELEASE_TAG'),
     notes: process.env.RELEASE_BODY ?? '',
-    publishedAt: process.env.RELEASE_PUBLISHED_AT,
+    publishedAt: requireEnv('RELEASE_PUBLISHED_AT'),
   };
 }
 
