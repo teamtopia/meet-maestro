@@ -25,9 +25,9 @@ function requireEnv(name) {
   return v;
 }
 
-function translationUrl() {
+export function translationUrl() {
   const subdomain = requireEnv('ZENDESK_SUBDOMAIN');
-  return `https://${subdomain}.zendesk.com/api/v2/help_center/${LOCALE}/articles/${ARTICLE_ID}/translations/${LOCALE}.json`;
+  return `https://${subdomain}.zendesk.com/api/v2/help_center/articles/${ARTICLE_ID}/translations/${LOCALE}.json`;
 }
 
 function authHeaders() {

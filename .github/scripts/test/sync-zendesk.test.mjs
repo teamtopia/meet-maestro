@@ -3,7 +3,21 @@ import assert from 'node:assert/strict';
 import { writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { readRelease } from '../sync-zendesk.mjs';
+import { readRelease, translationUrl } from '../sync-zendesk.mjs';
+
+test('translationUrl targets the article translations endpoint (no locale before "articles")', () => {
+  const prev = process.env.ZENDESK_SUBDOMAIN;
+  process.env.ZENDESK_SUBDOMAIN = 'swimtopia';
+  try {
+    assert.equal(
+      translationUrl(),
+      'https://swimtopia.zendesk.com/api/v2/help_center/articles/360028033092/translations/en-us.json',
+    );
+  } finally {
+    if (prev === undefined) delete process.env.ZENDESK_SUBDOMAIN;
+    else process.env.ZENDESK_SUBDOMAIN = prev;
+  }
+});
 
 test('readRelease fallback throws when RELEASE_TAG is unset', () => {
   const prevPath = process.env.GITHUB_EVENT_PATH;
